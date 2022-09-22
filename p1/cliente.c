@@ -8,12 +8,12 @@
 #include <time.h>
 #include <arpa/inet.h>
 #include <locale.h>
+#include <string.h>
 
 
 int main(){
     /*Identificador del socket y buffer de datos*/
     int socket_cliente;
-    char datos[100];
 
     /*Info. del servidor*/
     struct sockaddr_in Servidor;
@@ -26,25 +26,22 @@ int main(){
         exit(-1);
     }
 
-    /*Estructura timeval*/
-    struct timeval timeout;
-    fd_set data; //Conjunro de sockets comprobados para leer
+    fd_set lectura; //Conjunto de sockets comprobados para leer
     int salida = 0;
-    //char cadena[60];
 
-    /*Inicio estructura */
-    timeout.tv_sec = 10;
+    /*Inicio estructura timeval*/
+    struct timeval timeout;
+    timeout.tv_sec = 5;
     timeout.tv_usec = 0;
 
     /*Variables para fecha y hora*/
-    time_t tiempo;
+ /*   time_t tiempo;
     struct tm *stTm;
-    char cadena[80];
 
     tiempo = time(NULL);
     setlocale(LC_ALL, "");
     stTm = localtime(&tiempo);
-
+*/
     /*Info necesaria con los datos del servidor para poder solicitarle servicio*/
     Servidor.sin_family = AF_INET;
 	Servidor.sin_port = htons(2000);
@@ -52,58 +49,60 @@ int main(){
  	long_servidor = sizeof(Servidor);
     
     /*Inicio de conjuntos fd_set*/
-    FD_ZERO(&data);
-    FD_SET(0, &data);
+    FD_ZERO(&lectura);
+    FD_SET(0, &lectura);
+    FD_SET(socket_cliente, &lectura);
 
+    char cadena1[256];
+    int datos;
     printf("Introduce una de las siguientes opciones dependiendo de lo que desee: \n");
-    printf("DAY -> Recibes el dia actual. \n");
-    printf("TIME -> Recibes las hora actual. \n");
-    printf("DAYTIME -> Recibes ambas cosas. \n");
-    scanf("%s", datos);
+    printf("1. DAY -> Recibes el dia actual. \n");
+    printf("2. TIME -> Recibes las hora actual. \n");
+    printf("3. DAYTIME -> Recibes ambas cosas. \n");
+    scanf("%d", &datos);
+
+    switch (datos){
+        case 1:
+            strcpy(cadena1, "DAY");
+        //break;
+        case 2:
+            strcpy(cadena1, "TIME");
+        break;
+        case 3:
+            strcpy(cadena1, "DAYTIME");
+        break;
+        default:
+            printf("Parametro seleccionado no disponible. Try again. \n");
+        break;
+    }
     
 
-    for(int i = 0; ((i < 3) && (salida < 1)); i++){
+    for(int i = 0; (i < 3); i++){
         /*Enviamos al servidor*/
-        int enviado = sendto(socket_cliente, (char *)&datos, sizeof(datos), 0,
+        int enviado = sendto(socket_cliente, (char *)&cadena1, sizeof(cadena1), 0,
                             (struct sockaddr *)&Servidor, long_servidor);
         if(enviado < 0){
             printf("Error al enviar los datos. \n");
         }
+        else{
+            salida = select(socket_cliente + 1, &lectura, NULL, NULL, &timeout);
+            int recibido = recvfrom(socket_cliente, (char*)&cadena1, sizeof(cadena1),
+                                    0, (struct sockaddr *)&Servidor, &long_servidor);
+            
+            if(recibido > 0){
+                printf("Leido: %s \n", cadena1);
+                i = 4;
+            }
 
-        salida = select(socket_cliente + 1, &data, NULL, NULL, &timeout);
-        if(salida <= 0){
-            break;
+            else if (salida == -1){
+		        printf("Error en la funcion select(). \n");
+	        }
+            else if(salida == 0){
+                printf("Se ha acabado el tiempo de espera. \n");
+            }   
         }
     }    
-   	if (salida == -1){
-		printf("Error en la funcion select(). \n");
-	}
-    else if(salida == 0){
-        printf("Se ha acabado el tiempo de espera. \n");
-    }   
-    
-    else{
-	    /*Esperamos la respuesta del Servidor*/ 
-	    char recibido = recvfrom (socket_cliente, (char *)&datos, sizeof(datos), 0,
-	                                    (struct sockaddr *) &Servidor, &long_servidor);
-    
-        if(recibido == 'DAY'){
-		    strftime(cadena, 80, "%A, %d de %B de %y", stTm);
-		    printf("Hoy es %s", cadena);
-	    }
-	    if(recibido == 'TIME'){
-		    strftime(cadena, 80, "%H:%M:%S", stTm);
-		    printf("Son las %s", cadena);
-        }
-	    if(recibido == 'DAYTIME'){
-		    strftime(cadena, 80, "%A, %d de %B de %y; %H:%M:%S", stTm);
-		    printf("%s", cadena);
-	    }
-        else{
-            printf("Error al leer el servidor. \n");
-        }
-    }
-			
+    	
 	close(socket_cliente);
 	return 0;
 
