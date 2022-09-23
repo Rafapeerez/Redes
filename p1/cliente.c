@@ -64,7 +64,7 @@ int main(){
     switch (datos){
         case 1:
             strcpy(cadena1, "DAY");
-        //break;
+        break;
         case 2:
             strcpy(cadena1, "TIME");
         break;
@@ -86,23 +86,24 @@ int main(){
         }
         else{
             salida = select(socket_cliente + 1, &lectura, NULL, NULL, &timeout);
+    
+            if (salida == -1){
+	            printf("Error en la funcion select(). \n");
+            }
+            else if(salida == 0){
+                printf("Se ha acabado el tiempo de espera. \n");
+                exit(-1);
+            }
+    
             int recibido = recvfrom(socket_cliente, (char*)&cadena1, sizeof(cadena1),
                                     0, (struct sockaddr *)&Servidor, &long_servidor);
             
             if(recibido > 0){
                 printf("Leido: %s \n", cadena1);
                 i = 4;
-            }
-
-            else if (salida == -1){
-		        printf("Error en la funcion select(). \n");
-	        }
-            else if(salida == 0){
-                printf("Se ha acabado el tiempo de espera. \n");
             }   
         }
-    }    
-    	
+    }        	
 	close(socket_cliente);
 	return 0;
 
