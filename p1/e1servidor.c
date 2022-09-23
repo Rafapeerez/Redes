@@ -49,7 +49,6 @@ int main(){
 	el propio metodo recvfrom, cuando recibamos la llamada de un cliente.*/
 	long_cliente = sizeof(Cliente);
 
-
 	while(1){
 		char cadena[256];
 		int recibido = recvfrom(socket_servidor, (char*) &cadena, sizeof(cadena), 
