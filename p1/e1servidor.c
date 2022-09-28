@@ -12,28 +12,26 @@ int main(){
     /*Identificador del socket y buffer de datos*/
     int socket_servidor;
     struct sockaddr_in Servidor;
-	char cad[100];
-
+	
     /*Info. del servidor*/
     struct sockaddr_in Cliente;
 	socklen_t long_cliente;
 
     /*Se abre el socket servidor*/
-    socket_servidor = socket (AF_INET, SOCK_DGRAM, 0); //abrimos el socket servidor
+    socket_servidor = socket (AF_INET, SOCK_DGRAM, 0);
 	if (socket_servidor == -1){
 		printf ("No se puede abrir socket servidor\n");
 		exit (-1);	
 	}
 
 	/*Variable para la hora y el tiempo*/
-	char cadena[80];
-	time_t tiempo;
+	/*time_t tiempo;
 	struct tm *stTm;
 
 	tiempo = time(NULL);
 	setlocale(LC_ALL, "");
 	stTm = localtime(&tiempo);
-
+*/
 	/*Info necesaria para la funcion bind()*/
     Servidor.sin_family = AF_INET;
 	Servidor.sin_port = htons(2000);
@@ -52,13 +50,39 @@ int main(){
 
 
 	while(1){
-		int recibido = recvfrom(socket_servidor, (char*) cad, sizeof(cad), 
+		char cadena[80];
+		int recibido = recvfrom(socket_servidor, (char*) &cadena, sizeof(cadena), 
 						0, (struct sockaddr *)&Cliente, &long_cliente);
 
-		if(cad == 'DAY' || cad == 'TIME' || cad == 'DAYTIME' ){
+		if(recibido > 0){
 			printf("I have received it. \n");
 
-			int enviado = sendto(socket_servidor, (char *)&cad, sizeof(cad), 0,
+			time_t tiempo;
+			struct tm *stTm;
+
+			tiempo = time(NULL);
+			setlocale(LC_ALL, "");
+			stTm = localtime(&tiempo);
+
+			if(strcmp(cadena, "DAY") == 0){
+				strftime(cadena, 80, "%a, %d de %B \n",stTm);
+				printf("Cadena: %s", cadena);
+				/*char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+								(struct sockaddr *)&Cliente, long_cliente);*/
+			}
+			else if(strcmp(cadena, "TIME") == 0){
+				strftime(cadena, 80, "%H:%M:%S \n",stTm);
+				printf("Cadena: %s", cadena);
+				/*char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+								(struct sockaddr *)&Cliente, long_cliente);*/
+			}
+			else if(strcmp(cadena, "DAYTIME") == 0){
+				strftime(cadena, 80, "%a, %d de %B; %H:%M:%S \n",stTm);
+				printf("Cadena: %s", cadena);
+				/*char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+								(struct sockaddr *)&Cliente, long_cliente);*/
+			}
+			char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
 								(struct sockaddr *)&Cliente, long_cliente);
 		}
 	}
