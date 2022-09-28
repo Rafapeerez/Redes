@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <locale.h>
+#include <time.h>
 
 int main(){
 
@@ -25,7 +26,11 @@ int main(){
 	}
 
 	/*Variable para la hora y el tiempo*/
+<<<<<<< HEAD
 	/*time_t tiempo;
+=======
+	time_t tiempo;
+>>>>>>> 776ced12ada7c746cec072b460f56dc8b4b06ada
 	struct tm *stTm;
 
 	tiempo = time(NULL);
@@ -48,15 +53,19 @@ int main(){
 	el propio metodo recvfrom, cuando recibamos la llamada de un cliente.*/
 	long_cliente = sizeof(Cliente);
 
-
 	while(1){
+<<<<<<< HEAD
 		char cadena[80];
+=======
+		char cadena[256];
+>>>>>>> 776ced12ada7c746cec072b460f56dc8b4b06ada
 		int recibido = recvfrom(socket_servidor, (char*) &cadena, sizeof(cadena), 
 						0, (struct sockaddr *)&Cliente, &long_cliente);
 
 		if(recibido > 0){
 			printf("I have received it. \n");
 
+<<<<<<< HEAD
 			time_t tiempo;
 			struct tm *stTm;
 
@@ -83,7 +92,28 @@ int main(){
 								(struct sockaddr *)&Cliente, long_cliente);*/
 			}
 			char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+=======
+			if(strcmp(cadena, "DAY") == 0){
+				strftime(cadena, 256, "%a, %d de %B \n",stTm);
+				//printf("Cadena: %s", cadena);
+				char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
 								(struct sockaddr *)&Cliente, long_cliente);
+			}
+			else if(strcmp(cadena, "TIME") == 0){
+				strftime(cadena, 256, "%H:%M:%S \n",stTm);
+				//printf("Cadena: %s", cadena);
+				char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+								(struct sockaddr *)&Cliente, long_cliente);
+			}
+			else if(strcmp(cadena, "DAYTIME") == 0){
+				strftime(cadena, 256, "%a, %d de %B; %H:%M:%S \n",stTm);
+				//printf("Cadena: %s", cadena);
+				char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+>>>>>>> 776ced12ada7c746cec072b460f56dc8b4b06ada
+								(struct sockaddr *)&Cliente, long_cliente);
+			}
+			//char enviado = sendto(socket_servidor, (char *)&cadena, sizeof(cadena), 0,
+			//					(struct sockaddr *)&Cliente, long_cliente);
 		}
 	}
 	close(socket_servidor);

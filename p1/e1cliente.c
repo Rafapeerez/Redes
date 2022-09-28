@@ -8,6 +8,7 @@
 #include <time.h>
 #include <arpa/inet.h>
 #include <locale.h>
+#include <string.h>
 
 
 int main(){
@@ -25,23 +26,22 @@ int main(){
         exit(-1);
     }
 
-    /*Estructura timeval*/
-    struct timeval timeout;
-    fd_set lectura; //Conjunro de sockets comprobados para leer
+    fd_set lectura; //Conjunto de sockets comprobados para leer
     int salida = 0;
 
-    /*Inicio estructura */
+    /*Inicio estructura timeval*/
+    struct timeval timeout;
     timeout.tv_sec = 5;
     timeout.tv_usec = 0;
 
     /*Variables para fecha y hora*/
-    time_t tiempo;
+ /*   time_t tiempo;
     struct tm *stTm;
 
     tiempo = time(NULL);
     setlocale(LC_ALL, "");
     stTm = localtime(&tiempo);
-
+*/
     /*Info necesaria con los datos del servidor para poder solicitarle servicio*/
     Servidor.sin_family = AF_INET;
 	Servidor.sin_port = htons(2000);
@@ -51,6 +51,7 @@ int main(){
     /*Inicio de conjuntos fd_set*/
     FD_ZERO(&lectura);
     FD_SET(0, &lectura);
+    FD_SET(socket_cliente, &lectura);
 
     char cadena1[256];
     int datos;
@@ -85,23 +86,24 @@ int main(){
         }
         else{
             salida = select(socket_cliente + 1, &lectura, NULL, NULL, &timeout);
+    
+            if (salida == -1){
+	            printf("Error en la funcion select(). \n");
+            }
+            else if(salida == 0){
+                printf("Se ha acabado el tiempo de espera. \n");
+                exit(-1);
+            }
+    
             int recibido = recvfrom(socket_cliente, (char*)&cadena1, sizeof(cadena1),
                                     0, (struct sockaddr *)&Servidor, &long_servidor);
             
             if(recibido > 0){
                 printf("Leido: %s \n", cadena1);
                 i = 4;
-            }
-
-            else if (salida == -1){
-		        printf("Error en la funcion select(). \n");
-	        }
-            else if(salida == 0){
-                printf("Se ha acabado el tiempo de espera. \n");
             }   
         }
-    }    
-    	
+    }        	
 	close(socket_cliente);
 	return 0;
 
